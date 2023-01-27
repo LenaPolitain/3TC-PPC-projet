@@ -1,37 +1,32 @@
-from multiprocessing import Process, Array
+from multiprocessing import Process, Value
 import threading
 import os 
 import time 
 import socket 
 import sys
 from queue import Queue
+#from home import *
+from market import *
+from weather import *
 
 # variables globales pour la shared memory : weather
 # dictionnaire de couples de trucs méteo
 meteo_size = 12
-shared_meteo = Array('L', meteo_size) 
 
 
 
+if __name__ == "__main__" : 
 
-def home() : 
-    print("home")
-
-def market() :
-    print("market")
-
-def weather(meteo) : 
-    print("weather")
-
-
-
-if __name__ == "__main___" : 
-    home = Process(target = home, args=())
-    market = Process(target= market, args=())
-    weather = Process(target = weather, args = (shared_meteo,))
-    home.start() 
+    print("hello")
+    current_temperature = Value('i', 0) 
+    #home = Process(target = home, args=())
+    market = Process(target= market, args=(current_temperature,))
+    weather = Process(target = weather, args = (current_temperature,))
+    #home.start()
     market.start()
     weather.start()
-    home.join() 
-    market.join()
+    #print(current_temperature.value)
+    #time.sleep(3)
+    #print(current_temperature.value)
+    #home.join()
     weather.join()
