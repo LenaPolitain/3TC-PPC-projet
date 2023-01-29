@@ -9,7 +9,7 @@ mod_temp = 0.001
 
 def weather(current_temp) : 
     while True : 
-        aleatoire = random.choice(True, False)
+        aleatoire = random.choice([True, False])
         if aleatoire == True : 
             current_temp.value = current_temp.value + 1
         else : 

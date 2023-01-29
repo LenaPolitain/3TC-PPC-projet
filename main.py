@@ -18,14 +18,14 @@ meteo_size = 12
 if __name__ == "__main__" : 
 
     print("hello")
-    current_temperature = Value('i', 0) 
+    current_temperature = Value('i', 20) 
     #home = Process(target = home, args=())
     market = Process(target= market, args=(current_temperature,))
     weather = Process(target = weather, args = (current_temperature,))
     #home.start()
     market.start()
     weather.start()
-    #print(current_temperature.value)
+    print(current_temperature.value)
     #time.sleep(3)
     #print(current_temperature.value)
     #home.join()

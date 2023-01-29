@@ -15,7 +15,6 @@ def energy_price_calcul() :
 
 def socket_creation() : 
     print("Creating the socket")
-
     HOST = "localhost"
     PORT = 1313
 
@@ -25,7 +24,7 @@ def socket_creation() :
         server_socket.listen(1)
         server_socket.setsockopt(
             socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', 1, 0))
-        while number_of_connections <= MAX_CONN : 
+        while number_of_connections <= MAX_CONN :
             #print("waiting for a connection")
             client_socket, address = server_socket.accept()
             client_socket.setsockopt(
@@ -42,12 +41,13 @@ def home_interaction(client_socket, address) :
         client_policy = int.from_bytes(trade_policy, "big")
         print("Client's policy is number : " + str(client_policy))
         data = client_socket.recv(1024)
-        while data != "STOP" :
-            client_request = data.decode()
+        client_request = data.decode()
+        while client_request != "STOP" :
             print(f"le message est {client_request}")
             if(client_request == "BUY") : 
-                time.sleep(5)
+                print("ok la moula")
             data = client_socket.recv(1024)
+            client_request = data.decode()
         
         print("Disconnecting from client: ", address) 
 

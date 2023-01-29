@@ -20,6 +20,8 @@ def energy_gestion(server_socket) :
         #il faut acheter de l'energie : 
         #d'abord vérifier que personne veut bien en donner : 
         server_socket.sendall("BUY".encode())
+        time.sleep(0.5)
+        server_socket.sendall("STOP".encode())
 
   
 
