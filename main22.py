@@ -8,6 +8,7 @@ from queue import Queue
 #from home import *
 from market import *
 from weather import *
+from home2 import *
 import sysv_ipc
 key = 128
 
@@ -22,14 +23,10 @@ if __name__ == "__main__" :
     print("hello")
     current_temperature = Value('i', 20) 
     #home = Process(target = home, args=())
-
-    market = Process(target= market, args=(current_temperature,))
-    weather = Process(target = weather, args = (current_temperature,))
-    #home.start()
-    market.start()
-    weather.start()
-    print(current_temperature.value)
-    #time.sleep(3)
-    #print(current_temperature.value)
-    #home.join()
-    weather.join()
+    selling_queue = Queue()
+    home1 = Process(target = home, args=(selling_queue, 5, 1, 1,))
+    home2 = Process(target = home, args=(selling_queue, 2, 3, 2,))
+    home3 = Process(target = home, args=(selling_queue, 2, 3, 3,))
+    home1.start()
+    home2.start()
+    home3.start()

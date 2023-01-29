@@ -13,7 +13,7 @@ def energy_price_calcul() :
     energy_price = energy_price_t_1 * Y
     return energy_price
 
-def socket_creation() : 
+def socket_creation(current_temp) : 
     print("Creating the socket")
     HOST = "localhost"
     PORT = 1313
@@ -29,17 +29,18 @@ def socket_creation() :
             client_socket, address = server_socket.accept()
             client_socket.setsockopt(
                 socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', 1, 0))
-            t = Thread(target = home_interaction, args =(client_socket, address,))
+            t = Thread(target = home_interaction, args =(client_socket, address,current_temp,))
             t.start()
             number_of_connections +=1
 
 
-def home_interaction(client_socket, address) :
+def home_interaction(client_socket, address, current_temp) :
     with client_socket: 
         print("Connected to client: ", address)
         trade_policy = client_socket.recv(1024)
         client_policy = int.from_bytes(trade_policy, "big")
         print("Client's policy is number : " + str(client_policy))
+        print("la température vaut : " + str(current_temp.value))
         data = client_socket.recv(1024)
         client_request = data.decode()
         while client_request != "STOP" :
@@ -55,4 +56,4 @@ def home_interaction(client_socket, address) :
 def market(current_temp) : 
     print(current_temp.value)
     print(energy_price_calcul())
-    socket_creation()
+    socket_creation(current_temp)
