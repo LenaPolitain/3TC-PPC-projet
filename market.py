@@ -2,12 +2,24 @@ import socket
 import struct
 from threading import Thread
 import time
+import signal
+import multiprocessing
+#from external import *
 
 energy_price = 0
 MAX_CONN = 10
 Y = 0.1512
 energy_price_t_1 = 0
 
+def handler(sig, frame) :
+    if sig == signal.SIGINT : 
+        print("THERE IS A HURRICANE HELP")
+    elif sig == signal.SIGUSR1 : 
+        print("DAMN, AGAIN ??")
+    elif sig == signal.SIGUSR2 : 
+        print("FUEL SHORTAGE")
+    elif sig == signal.SIGKILL : 
+        print("F*****G BUTTERFLIES")
 
 def energy_price_calcul() : 
     energy_price = energy_price_t_1 * Y
@@ -40,20 +52,27 @@ def home_interaction(client_socket, address, current_temp) :
         trade_policy = client_socket.recv(1024)
         client_policy = int.from_bytes(trade_policy, "big")
         print("Client's policy is number : " + str(client_policy))
-        print("la température vaut : " + str(current_temp.value))
+        #print("la température vaut : " + str(current_temp.value))
         data = client_socket.recv(1024)
         client_request = data.decode()
-        while client_request != "STOP" :
-            print(f"le message est {client_request}")
-            if(client_request == "BUY") : 
-                print("ok la moula")
+        while data != "STOP":
             data = client_socket.recv(1024)
             client_request = data.decode()
+            signal.signal(signal.SIGINT, handler)
+            #print(f"le message est {client_request}")
+            if(client_request == "BUY") : 
+                print("ok la moula")
         
         print("Disconnecting from client: ", address) 
 
 
 def market(current_temp) : 
-    print(current_temp.value)
+    
+    #print(current_temp.value)
     print(energy_price_calcul())
     socket_creation(current_temp)
+
+
+#external = multiprocessing.Process(target = external, args = (multiprocessing.current_process().pid,))
+#external.start()
+market(20)
