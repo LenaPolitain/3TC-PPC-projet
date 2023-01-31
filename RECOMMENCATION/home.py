@@ -13,7 +13,7 @@ trade_policy = 0
 
 # selling queue fonctionnelle mais problèmes ds le côté économique 
 
-def home(id, selling_queue) :
+def home(id, selling_queue, current_temp) :
 
     global trade_policy
     #print(f"Home PID : {multiprocessing.current_process().pid}")
@@ -26,16 +26,15 @@ def home(id, selling_queue) :
         #print(f"My policy is number {trade_policy_bytes}")
         server_socket.sendall(trade_policy_bytes)
         #time sleep s'assure que le serveur a bien reçu l'info avant d'envoyer la suite
-        time.sleep(0.5)
-        while(True) : 
-            energy_gestion(id, server_socket, selling_queue)
+        time.sleep(3)
+        energy_gestion(id, server_socket, selling_queue, current_temp)
 
 
 
-def energy_gestion(id, server_socket, selling_queue) :
+def energy_gestion(id, server_socket, selling_queue, current_temp) :
     global initial_energy 
 
-    while True :
+    while current_temp.value != 10000 : 
 
         initial_energy = initial_energy - consumption_rate + production_rate
 

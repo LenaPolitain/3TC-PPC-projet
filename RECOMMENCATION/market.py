@@ -6,38 +6,47 @@ import socket
 import struct
 
 energy_price = 0
-MAX_CONN = 10
+MAX_CONN = 3
 end_of_communication = False
-socket_pid = 8080
-external_pid = 8080
-market_pid = 8080
 
 def handler (sig, frame) : 
 
     global end_of_communication
-
+    global socket_pid
+    global external_pid
 
     if sig == signal.SIGCHLD : 
+        print(" ")
         print("HURRICANE HAPPENING")
+        print(" ")
     elif sig == signal.SIGUSR1 : 
+        print(" ")
         print("PUTIN WAR HAPPPENING")
+        print(" ")
     elif sig == signal.SIGUSR2 : 
+        print(" ")
         print("FUEL SHORTAGE HAPPENENING")
+        print(" ")
+
+    # here : to make sure that every process is killed 
     elif sig == signal.SIGINT : 
-        print("*****************************************KILLING ALL THE PROCESSES*********************************************")
+        print(" ")
+        print(" ")
+        print("KILLING ALL THE PROCESSES :")
+        print(" ")
+        print(" ")
+        active = multiprocessing.active_children()
+        for child in active:
+            print(f"killing : {child}")
+            child.kill()
+        os.kill(multiprocessing.parent_process().pid, signal.SIGINT)
         os.kill(multiprocessing.current_process().pid, signal.SIGKILL)
-        os.kill(multiprocessing.parent_process().pid, signal.SIGKILL)
-        os.kill(socket_pid, signal.SIGKILL)
-        os.kill(external_pid, signal.SIGKILL)
 
-def socket_creation() : 
-
-    global socket_pid 
-    socket_pid = multiprocessing.current_process().pid
+def socket_creation(current_temp) : 
 
     #print(f"Socket PID : {multiprocessing.current_process().pid}")
 
-    print("Creating the socket")
+    #print("Creating the socket")
     HOST = "localhost"
     PORT = 1313
 
@@ -47,33 +56,39 @@ def socket_creation() :
         server_socket.listen(1)
         server_socket.setsockopt(
             socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', 1, 0))
-        while number_of_connections <= MAX_CONN :
+
+        sockets = [threading.Thread for i in range(MAX_CONN)]
+
+        while number_of_connections < MAX_CONN :
             #print("waiting for a connection")
             client_socket, address = server_socket.accept()
             client_socket.setsockopt(
                 socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', 1, 0))
-            t = threading.Thread(target = home_interaction, args =(client_socket, address,))
-            t.start()
+            sockets[number_of_connections] = threading.Thread(target = home_interaction, args =(client_socket, address, current_temp,))
+            sockets[number_of_connections].start()
             number_of_connections +=1
+        
+        for h in sockets :
+            h.join()
 
-def home_interaction(client_socket, address) :
-    with client_socket: 
-        print("Connected to client: ", address)
-        trade_policy = client_socket.recv(1024)
-        client_policy = int.from_bytes(trade_policy, "big")
-        print(f"Client's policy is number : {client_policy}")
+def home_interaction(client_socket, address, current_temp) :
+    #with client_socket: 
+    trade_policy = client_socket.recv(1024)
+    client_policy = int.from_bytes(trade_policy, "big")
+    print(f"***************Connected to client : {address}. Client's policy is number : {client_policy}**********************")
+    data = client_socket.recv(1024)
+    client_request = data.decode()
+    while current_temp.value != 10000 :
         data = client_socket.recv(1024)
         client_request = data.decode()
-        while end_of_communication == False :
-            data = client_socket.recv(1024)
-            client_request = data.decode()
-            if(client_request == "BUY") : 
-                print("FROM MARKET : someone just bought me energy")
-            elif(client_request == "SELL") : 
-                print("FROM MARKET : someone just sold me energy")
-        print("Disconnecting from client: ", address) 
+        if(client_request == "BUY") : 
+            print("FROM MARKET : someone just bought me energy")
+        elif(client_request == "SELL") : 
+            print("FROM MARKET : someone just sold me energy")
+    print("Disconnecting from client: ", address) 
+    client_socket.close()
 
-def market() :
+def market(current_temp) :
 
     global external_pid 
 
@@ -83,17 +98,20 @@ def market() :
     signal.signal(signal.SIGUSR1, handler)
     signal.signal(signal.SIGUSR2, handler)
     signal.signal(signal.SIGINT, handler)
-    pid = multiprocessing.current_process().pid
-    #print(f"my pid is {pid}")
-    ext = multiprocessing.Process(target=(external), args=(pid,))
-    ext.start()
-    #external_pid = external.pid
 
-    tcp_socket = multiprocessing.Process(target=(socket_creation), args=())
+    pid = multiprocessing.current_process().pid
+
+    ext = multiprocessing.Process(target=(external), args=(pid, current_temp,))
+    ext.start()
+
+    tcp_socket = threading.Thread(target=(socket_creation), args=(current_temp,))
     tcp_socket.start()
 
-    #maintenant on s'occupe juste de calculer l'energie : 
+    ext.join()
+    tcp_socket.join()
+
+    """ #maintenant on s'occupe juste de calculer l'energie : 
     while True : 
         time.sleep(1)
         print(f"The price of the energy is : <{energy_price} €> right now")
-        energy_price += 1
+        energy_price += 1 """
