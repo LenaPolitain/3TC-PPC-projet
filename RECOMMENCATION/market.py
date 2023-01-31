@@ -6,30 +6,46 @@ import socket
 import struct
 from string import printable
 
-energy_price = 0
+energy_price = 0.0
 global NUM_HOUSES
+external_event = False
 
-def handler (sig, frame) : 
+def newPrice(current_temp) :
+    atenuation_coeff = 0.99
+    modulating_coeff_int = 0.001
+    modulating_coeff_ext = 0.01
+    global energy_price
+
+    if (external_event) :
+        energy_price = atenuation_coeff*energy_price + modulating_coeff_int*current_temp + modulating_coeff_ext
+    else :
+        energy_price = atenuation_coeff*energy_price + modulating_coeff_int*current_temp
+
+def handler (sig, frame) :
 
     global end_of_communication
     global socket_pid
     global external_pid
+    global external_event
 
-    if sig == signal.SIGCHLD : 
+    if sig == signal.SIGCHLD :
         print(" ")
         print("HURRICANE HAPPENING")
         print(" ")
-    elif sig == signal.SIGUSR1 : 
+        external_event = True
+    elif sig == signal.SIGUSR1 :
         print(" ")
         print("PUTIN WAR HAPPPENING")
         print(" ")
-    elif sig == signal.SIGUSR2 : 
+        external_event = True
+    elif sig == signal.SIGUSR2 :
         print(" ")
         print("FUEL SHORTAGE HAPPENENING")
         print(" ")
+        external_event = True
 
-    # here : to make sure that every process is killed 
-    elif sig == signal.SIGINT : 
+    # here : to make sure that every process is killed
+    elif sig == signal.SIGINT :
         print(" ")
         print(" ")
         print("KILLING ALL THE PROCESSES :")
@@ -42,7 +58,7 @@ def handler (sig, frame) :
         os.kill(multiprocessing.parent_process().pid, signal.SIGINT)
         os.kill(multiprocessing.current_process().pid, signal.SIGKILL)
 
-def socket_creation(current_temp, everybody_connected) : 
+def socket_creation(current_temp, everybody_connected) :
 
     #print(f"Socket PID : {multiprocessing.current_process().pid}")
 
@@ -67,14 +83,14 @@ def socket_creation(current_temp, everybody_connected) :
             sockets[number_of_connections] = threading.Thread(target = home_interaction, args =(client_socket, address, current_temp,))
             sockets[number_of_connections].start()
             number_of_connections +=1
-        
+
         everybody_connected.value = True
 
         for h in sockets :
             h.join()
 
 def home_interaction(client_socket, address, current_temp) :
-    #with client_socket: 
+    #with client_socket:
     trade_policy = client_socket.recv(1024)
     client_policy = int.from_bytes(trade_policy, "big")
     print(f"*************** Connected to client : {address}. Client's policy is number : {client_policy} **********************")
@@ -86,12 +102,12 @@ def home_interaction(client_socket, address, current_temp) :
         client_request = client_request.strip()
         # on enlève les char spéciaux
         client_request = ''.join(char for char in client_request if char in printable)
-        
-        if client_request == "BUY" : 
+
+        if client_request == "BUY" :
             print("FROM MARKET : someone just bought me energy")
-        elif client_request == "SELL" : 
+        elif client_request == "SELL" :
             print("FROM MARKET : someone just sold me energy")
-    print("Disconnecting from client: ", address) 
+    print("Disconnecting from client: ", address)
     client_socket.close()
 
 def market(current_temp, number_of_houses, everybody_connected) :
@@ -117,8 +133,8 @@ def market(current_temp, number_of_houses, everybody_connected) :
     ext.join()
     tcp_socket.join()
 
-    """ #maintenant on s'occupe juste de calculer l'energie : 
-    while True : 
+    #maintenant on s'occupe juste de calculer l'energie :
+    while True :
         time.sleep(1)
         print(f"The price of the energy is : <{energy_price} €> right now")
-        energy_price += 1 """
+        newPrice(current_temp)
