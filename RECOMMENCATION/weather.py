@@ -2,8 +2,10 @@
 
 import random
 import time
+import multiprocessing
 
 def weather(current_temp) :
+    #print(f"Weather PID : {multiprocessing.current_process().pid}")
     while True : 
         aleatoire = random.choice([True, False])
         if aleatoire == True : 

@@ -4,10 +4,13 @@ import time
 import signal
 import os
 import random
+import multiprocessing
 
 def external(pid_market) : 
-    print("here is external")
+    time.sleep(5)
+    #print(f"External PID : {multiprocessing.current_process().pid}")
     while True :
+        time.sleep(random.randint(10,100))
         print("What is happening to the Market ?")
         evenement = random.randint(1, 4)
         if evenement == 1 :
@@ -24,4 +27,3 @@ def external(pid_market) :
             #os.kill(pid_market, signal.SIGINT)
         else : 
             print("L'evenement que vous avez demandé n'existe pas")
-        time.sleep(random.randint(10,100))

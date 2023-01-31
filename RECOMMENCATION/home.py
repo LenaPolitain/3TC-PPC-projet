@@ -1,6 +1,7 @@
 import random
 import time
 import socket
+import multiprocessing
 
 initial_energy = 15
 production_rate = 2
@@ -8,18 +9,24 @@ consumption_rate = 3
 trade_policy = 0
 MIN_TO_SELL = 10
 MIN_TO_BUY = 5
-trade_policy = random.randint(1, 2)
+trade_policy = 0
 
 # selling queue fonctionnelle mais problèmes ds le côté économique 
 
 def home(id, selling_queue) :
 
+    global trade_policy
+    #print(f"Home PID : {multiprocessing.current_process().pid}")
+    trade_policy = random.randint(1,3)
     HOST = "localhost"
     PORT = 1313
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         server_socket.connect((HOST, PORT))
         trade_policy_bytes = trade_policy.to_bytes(2, 'big')
+        #print(f"My policy is number {trade_policy_bytes}")
         server_socket.sendall(trade_policy_bytes)
+        #time sleep s'assure que le serveur a bien reçu l'info avant d'envoyer la suite
+        time.sleep(0.5)
         while(True) : 
             energy_gestion(id, server_socket, selling_queue)
 
