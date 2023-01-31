@@ -4,6 +4,7 @@ from external import *
 import signal
 import socket
 import struct
+from string import printable
 
 energy_price = 0
 MAX_CONN = 3
@@ -76,14 +77,18 @@ def home_interaction(client_socket, address, current_temp) :
     trade_policy = client_socket.recv(1024)
     client_policy = int.from_bytes(trade_policy, "big")
     print(f"***************Connected to client : {address}. Client's policy is number : {client_policy}**********************")
-    data = client_socket.recv(1024)
-    client_request = data.decode()
     while current_temp.value != 10000 :
         data = client_socket.recv(1024)
         client_request = data.decode()
-        if(client_request == "BUY") : 
+        client_request = str(client_request)
+        # on enlève les espaces indésirables
+        client_request = client_request.strip()
+        # on enlève les char spéciaux
+        client_request = ''.join(char for char in client_request if char in printable)
+        
+        if client_request == "BUY" : 
             print("FROM MARKET : someone just bought me energy")
-        elif(client_request == "SELL") : 
+        elif client_request == "SELL" : 
             print("FROM MARKET : someone just sold me energy")
     print("Disconnecting from client: ", address) 
     client_socket.close()

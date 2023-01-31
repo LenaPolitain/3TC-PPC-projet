@@ -4,7 +4,7 @@ from weather import *
 from home import *
 
 NUM_HOUSES = 3
-TIME_MAX = 20
+TIME_MAX = 240
 
 def handler (sig, frame) : 
 
