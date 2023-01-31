@@ -6,10 +6,11 @@ import os
 import random
 
 
-def external(pid_market, current_temp) : 
+def external(pid_market, current_temp, everybody_connected) : 
 
     #waits for everything to get in place before starting
-    time.sleep(5)
+    while everybody_connected.value != True : 
+        time.sleep(0.1)
 
     while current_temp.value != 10000 :
 

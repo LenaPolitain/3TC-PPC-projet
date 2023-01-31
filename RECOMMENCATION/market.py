@@ -7,8 +7,7 @@ import struct
 from string import printable
 
 energy_price = 0
-MAX_CONN = 3
-end_of_communication = False
+global NUM_HOUSES
 
 def handler (sig, frame) : 
 
@@ -43,7 +42,7 @@ def handler (sig, frame) :
         os.kill(multiprocessing.parent_process().pid, signal.SIGINT)
         os.kill(multiprocessing.current_process().pid, signal.SIGKILL)
 
-def socket_creation(current_temp) : 
+def socket_creation(current_temp, everybody_connected) : 
 
     #print(f"Socket PID : {multiprocessing.current_process().pid}")
 
@@ -58,9 +57,9 @@ def socket_creation(current_temp) :
         server_socket.setsockopt(
             socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', 1, 0))
 
-        sockets = [threading.Thread for i in range(MAX_CONN)]
+        sockets = [threading.Thread for i in range(NUM_HOUSES)]
 
-        while number_of_connections < MAX_CONN :
+        while number_of_connections < NUM_HOUSES :
             #print("waiting for a connection")
             client_socket, address = server_socket.accept()
             client_socket.setsockopt(
@@ -69,6 +68,8 @@ def socket_creation(current_temp) :
             sockets[number_of_connections].start()
             number_of_connections +=1
         
+        everybody_connected.value = True
+
         for h in sockets :
             h.join()
 
@@ -76,7 +77,7 @@ def home_interaction(client_socket, address, current_temp) :
     #with client_socket: 
     trade_policy = client_socket.recv(1024)
     client_policy = int.from_bytes(trade_policy, "big")
-    print(f"***************Connected to client : {address}. Client's policy is number : {client_policy}**********************")
+    print(f"*************** Connected to client : {address}. Client's policy is number : {client_policy} **********************")
     while current_temp.value != 10000 :
         data = client_socket.recv(1024)
         client_request = data.decode()
@@ -93,9 +94,10 @@ def home_interaction(client_socket, address, current_temp) :
     print("Disconnecting from client: ", address) 
     client_socket.close()
 
-def market(current_temp) :
+def market(current_temp, number_of_houses, everybody_connected) :
 
-    global external_pid 
+    global NUM_HOUSES
+    NUM_HOUSES = number_of_houses
 
     #print("Market function")
     #print(f"Market PID : {multiprocessing.current_process().pid}")
@@ -106,10 +108,10 @@ def market(current_temp) :
 
     pid = multiprocessing.current_process().pid
 
-    ext = multiprocessing.Process(target=(external), args=(pid, current_temp,))
+    ext = multiprocessing.Process(target=(external), args=(pid, current_temp, everybody_connected,))
     ext.start()
 
-    tcp_socket = threading.Thread(target=(socket_creation), args=(current_temp,))
+    tcp_socket = threading.Thread(target=(socket_creation), args=(current_temp, everybody_connected,))
     tcp_socket.start()
 
     ext.join()

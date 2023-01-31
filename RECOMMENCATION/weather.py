@@ -4,16 +4,18 @@ import random
 import time
 import multiprocessing
 
-MONTH_DURATION = 5
+MONTH_DURATION = 15
 
-def weather(current_temp, temps_max) :
+def weather(current_temp, temps_max, everybody_connected) :
     #print(f"Weather PID : {multiprocessing.current_process().pid}")
+    while everybody_connected.value != True : 
+        time.sleep(0.1)
     start = time.time()
     execution = 0
-    month = 1
+    month = 0
     print (" ")
     print (" ")
-    print(f"MONTH NUMBER {month}")
+    print(f"MONTH NUMBER {month+1}")
     print (" ")
     print (" ")
 
@@ -32,7 +34,7 @@ def weather(current_temp, temps_max) :
             month +=1 
             print (" ")
             print (" ")
-            print(f"MONTH NUMBER {month}")
+            print(f"MONTH NUMBER {month+1}")
             print (" ")
             print (" ")
 
